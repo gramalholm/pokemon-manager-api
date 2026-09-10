@@ -5,7 +5,7 @@ class Pokemon {
     props;
     constructor(props) {
         if (props.hp <= 0) {
-            throw new Error("O HP do Pokémon deve ser maior que zero.");
+            throw new Error('O HP do Pokémon deve ser maior que zero.');
         }
         this.props = props;
     }

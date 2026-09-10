@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeletePokemonUseCase = void 0;
-const notFindError_1 = require("@domain/errors/notFindError");
+const NotFindError_1 = require("@domain/errors/NotFindError");
 class DeletePokemonUseCase {
     pokemonRepository;
     constructor(pokemonRepository) {
@@ -10,7 +10,7 @@ class DeletePokemonUseCase {
     async execute(id) {
         const pokemon = await this.pokemonRepository.findById(id);
         if (!pokemon)
-            throw new notFindError_1.NotFoundError(id);
+            throw new NotFindError_1.NotFoundError(id);
         await this.pokemonRepository.delete(id);
     }
 }

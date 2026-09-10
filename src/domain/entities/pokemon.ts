@@ -1,36 +1,35 @@
 //Usando props para seguir o DDD
-export interface PokemonProps{
-    id: string;
-    name: string;
-    type: string;
-    hp: number;
+export interface PokemonProps {
+  id: string;
+  name: string;
+  type: string;
+  hp: number;
 }
 
-export class Pokemon{
-    private props: PokemonProps;
+export class Pokemon {
+  private props: PokemonProps;
 
-    constructor(props: PokemonProps){
-        if(props.hp <= 0){
-            throw new Error("O HP do Pokémon deve ser maior que zero.");
-        }
-
-        this.props = props;
+  constructor(props: PokemonProps) {
+    if (props.hp <= 0) {
+      throw new Error('O HP do Pokémon deve ser maior que zero.');
     }
 
-    get id() {
-        return this.props.id;
-    }
+    this.props = props;
+  }
 
-    get name() {
-        return this.props.name;
-    }
+  get id() {
+    return this.props.id;
+  }
 
-    get type() {
-        return this.props.type;
-    }
+  get name() {
+    return this.props.name;
+  }
 
-    get hp() {
-        return this.props.hp;
-    }
+  get type() {
+    return this.props.type;
+  }
 
+  get hp() {
+    return this.props.hp;
+  }
 }

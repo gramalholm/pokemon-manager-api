@@ -1,24 +1,17 @@
-import { Pokemon } from "@domain/entities/pokemon";
-import { IPokemonRepository } from "@domain/repositories/pokemon.repository";
+import { IPokemonRepository } from '@domain/repositories/pokemon.repository';
 import { PokemonProps } from '@domain/entities/pokemon';
-import { NotFoundError } from "@domain/errors/NotFindError";
-
-interface PokeStats {
-  totalPokemons: number;
-  typesCount: Record<string, number>;
-}
+import { NotFoundError } from '@domain/errors/NotFindError';
 
 export class GetPokemonByIdUseCase {
-    constructor(private pokeRepository: IPokemonRepository){}
+  constructor(private pokeRepository: IPokemonRepository) {}
 
-    async execute(id: string): Promise<PokemonProps> {
+  async execute(id: string): Promise<PokemonProps> {
+    const pokemon = await this.pokeRepository.findById(id);
 
-            const pokemon = await this.pokeRepository.findById(id);
-
-            if (!pokemon) {
-                throw new Error("Pokémon não encontrado.");
-            }
-
-            return pokemon;
+    if (!pokemon) {
+      throw new NotFoundError(id);
     }
+
+    return pokemon;
+  }
 }

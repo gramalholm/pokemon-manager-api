@@ -6,7 +6,8 @@ const doc = {
   info: {
     version: '1.0.0',
     title: 'Pokemon Manager API',
-    description: 'API RESTful para gerenciamento de um catálogo de Pokémons, construída com Clean Architecture.',
+    description:
+      'API RESTful para gerenciamento de um catálogo de Pokémons, construída com Clean Architecture.',
   },
   servers: [{ url: 'http://localhost:3333' }],
   tags: [
@@ -57,10 +58,12 @@ const endpointsFiles = [
 ];
 const schemas = JSON.parse(JSON.stringify(doc.components.schemas));
 
-swaggerAutogen({ openapi: '3.0.0' })(outputFile, endpointsFiles, doc).then(() => {
-  const swaggerDocument = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+swaggerAutogen({ openapi: '3.0.0' })(outputFile, endpointsFiles, doc).then(
+  () => {
+    const swaggerDocument = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
 
-  swaggerDocument.components.schemas = schemas;
+    swaggerDocument.components.schemas = schemas;
 
-  fs.writeFileSync(outputFile, JSON.stringify(swaggerDocument, null, 2));
-});
+    fs.writeFileSync(outputFile, JSON.stringify(swaggerDocument, null, 2));
+  },
+);

@@ -1,9 +1,9 @@
-import { Pokemon } from "@domain/entities/pokemon";
+import { Pokemon } from '@domain/entities/pokemon';
 
-export interface IPokemonRepository{
-    create(pokemon: Pokemon): Promise<void>;
-    findAll(): Promise<Pokemon[]>;
-    findById(id: string): Promise<Pokemon | null>;
-    update(pokemon: Pokemon): Promise<void>;
-    delete(id: string): Promise<void>;
+export interface IPokemonRepository {
+  create(pokemon: Pokemon): Promise<void>;
+  findAll(): Promise<Pokemon[]>;
+  findById(id: string): Promise<Pokemon | null>;
+  update(pokemon: Pokemon): Promise<void>;
+  delete(id: string): Promise<void>;
 }

@@ -1,12 +1,11 @@
-import { Router } from "express";
-import { PokemonController } from "../controllers/pokemon.controller";
-import { makePokemonController } from "@main/factories/makePokemonControler";
+import { Router } from 'express';
+import { makePokemonController } from '@main/factories/makePokemonControler';
 
 const pokeRoutes = Router();
 const pokemonController = makePokemonController();
 
 pokeRoutes.get('/api/v1/pokemons', (req, res) => {
-        /*
+  /*
             #swagger.tags = ['Pokemons']
             #swagger.summary = 'Lista todos os Pokémons'
             #swagger.description = 'Endpoint para listar os Pokémons cadastrados.'
@@ -22,11 +21,11 @@ pokeRoutes.get('/api/v1/pokemons', (req, res) => {
                 }
             }
         */
-        return pokemonController.list(req, res);
+  return pokemonController.list(req, res);
 });
 
 pokeRoutes.get('/api/v1/pokemons/:id', (req, res) => {
-        /*
+  /*
             #swagger.tags = ['Pokemons']
             #swagger.summary = 'Busca um Pokémon pelo ID'
             #swagger.description = 'Endpoint para consultar um Pokémon cadastrado pelo seu ID.'
@@ -53,11 +52,11 @@ pokeRoutes.get('/api/v1/pokemons/:id', (req, res) => {
                 }
             }
         */
-        return pokemonController.getById(req, res);
+  return pokemonController.getById(req, res);
 });
 
 pokeRoutes.post('/api/v1/pokemons', (req, res) => {
-        /*
+  /*
             #swagger.tags = ['Pokemons']
             #swagger.summary = 'Cria um novo Pokémon'
             #swagger.description = 'Endpoint para cadastrar um novo Pokémon.'
@@ -86,11 +85,11 @@ pokeRoutes.post('/api/v1/pokemons', (req, res) => {
                 }
             }
         */
-        return pokemonController.create(req, res);
+  return pokemonController.create(req, res);
 });
 
 pokeRoutes.put('/api/v1/pokemons/:id', (req, res) => {
-        /*
+  /*
             #swagger.tags = ['Pokemons']
             #swagger.summary = 'Atualiza um Pokémon pelo ID'
             #swagger.description = 'Endpoint para atualizar os dados de um Pokémon cadastrado.'
@@ -125,11 +124,11 @@ pokeRoutes.put('/api/v1/pokemons/:id', (req, res) => {
                 }
             }
         */
-        return pokemonController.update(req, res);
+  return pokemonController.update(req, res);
 });
 
 pokeRoutes.delete('/api/v1/pokemons/:id', (req, res) => {
-        /*
+  /*
             #swagger.tags = ['Pokemons']
             #swagger.summary = 'Remove um Pokémon pelo ID'
             #swagger.description = 'Endpoint para remover um Pokémon cadastrado.'
@@ -151,7 +150,7 @@ pokeRoutes.delete('/api/v1/pokemons/:id', (req, res) => {
                 }
             }
         */
-        return pokemonController.delete(req, res);
+  return pokemonController.delete(req, res);
 });
 
 export { pokeRoutes };

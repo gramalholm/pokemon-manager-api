@@ -1,6 +1,6 @@
-import  express  from "express";
-import { pokeRoutes } from "@infrastructure/http/routes/pokemon.routes";
-import { setupSwagger } from "./config/swagger";
+import express from 'express';
+import { pokeRoutes } from '@infrastructure/http/routes/pokemon.routes';
+import { setupSwagger } from './config/swagger';
 
 const app = express();
 
