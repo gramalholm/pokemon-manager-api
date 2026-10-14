@@ -6,8 +6,8 @@ class ListPokemonUseCase {
     constructor(pokeRepository) {
         this.pokeRepository = pokeRepository;
     }
-    async execute() {
-        return await this.pokeRepository.findAll();
+    async execute(filter) {
+        return await this.pokeRepository.findAll(filter);
     }
 }
 exports.ListPokemonUseCase = ListPokemonUseCase;

@@ -1,9 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PokemonController = void 0;
-const NotFindError_1 = require("@domain/errors/NotFindError");
-const getErrorMessage = (error) => error instanceof Error ? error.message : 'Erro interno.';
-// Nas proximas etapas implementar middlewares de tratamento de erro para evitar esse try-catch chato
 class PokemonController {
     createPokemon;
     deletePokemon;
@@ -17,73 +14,53 @@ class PokemonController {
         this.listPokemons = listPokemons;
         this.updatePokemon = updatePokemon;
     }
-    create = async (req, res) => {
+    create = async (req, res, next) => {
         try {
-            const { id, name, type, hp } = req.body;
-            if (!id || !name || !type || hp === undefined) {
-                return res.status(400).json({
-                    error: 'Dados inválidos. Envie id, name, type e hp.',
-                });
-            }
-            const pokeData = {
-                id,
-                name,
-                type,
-                hp,
-            };
-            const created_pokemon = await this.createPokemon.execute(pokeData);
-            return res.status(201).json(created_pokemon);
+            const createdPokemon = await this.createPokemon.execute(req.body);
+            res.status(201).json(createdPokemon.toJSON());
         }
         catch (error) {
-            return res.status(400).json({ error: getErrorMessage(error) });
+            next(error);
         }
     };
-    list = async (req, res) => {
+    list = async (req, res, next) => {
         try {
-            const poke_list = await this.listPokemons.execute();
-            return res.status(200).json(poke_list);
+            const { type, name } = req.query;
+            const pokemons = await this.listPokemons.execute({ type, name });
+            res.status(200).json(pokemons.map((p) => p.toJSON()));
         }
         catch (error) {
-            return res.status(400).json({ error: getErrorMessage(error) });
+            next(error);
         }
     };
-    update = async (req, res) => {
-        try {
-            const { name, type } = req.body;
-            const updtPoke = {
-                name,
-                type,
-            };
-            const pokemon = await this.updatePokemon.execute(req.params.id, updtPoke);
-            return res.status(200).json(pokemon);
-        }
-        catch (error) {
-            return res.status(400).json({ error: getErrorMessage(error) });
-        }
-    };
-    // Esse pokeParams eu tive que criar pq por algum motivo o req.params.id estava dando erro sozinho
-    delete = async (req, res) => {
-        try {
-            await this.deletePokemon.execute(req.params.id);
-            return res.status(204).send();
-        }
-        catch (err) {
-            if (err instanceof NotFindError_1.NotFoundError)
-                return res.status(404).json({ message: err.message });
-            throw err;
-        }
-    };
-    getById = async (req, res) => {
+    getById = async (req, res, next) => {
         try {
             const { id } = req.params;
             const pokemon = await this.getPokemonById.execute(id);
-            return res.status(200).json(pokemon);
+            res.status(200).json(pokemon.toJSON());
         }
         catch (error) {
-            if (error instanceof NotFindError_1.NotFoundError) {
-                return res.status(404).json({ message: error.message });
-            }
-            return res.status(400).json({ error: getErrorMessage(error) });
+            next(error);
+        }
+    };
+    update = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const pokemon = await this.updatePokemon.execute(id, req.body);
+            res.status(200).json(pokemon.toJSON());
+        }
+        catch (error) {
+            next(error);
+        }
+    };
+    delete = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            await this.deletePokemon.execute(id);
+            res.status(204).send();
+        }
+        catch (error) {
+            next(error);
         }
     };
 }

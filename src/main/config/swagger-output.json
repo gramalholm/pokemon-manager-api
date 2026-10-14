@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "version": "1.0.0",
-    "title": "Pokemon Manager API",
-    "description": "API RESTful para gerenciamento de um catálogo de Pokémons, construída com Clean Architecture."
+    "version": "2.0.0",
+    "title": "PokéManager API",
+    "description": "API RESTful para gerenciamento de Treinadores e Pokémons, integrando PokéAPI, Clean Architecture, validação Zod e persistência Prisma."
   },
   "servers": [
     {
@@ -13,7 +13,19 @@
   "tags": [
     {
       "name": "Pokemons",
-      "description": "Endpoints de gerenciamento de Pokémons"
+      "description": "Endpoints de gerenciamento do catálogo de Pokémons"
+    },
+    {
+      "name": "Trainers",
+      "description": "Endpoints de cadastro e consulta de Treinadores"
+    },
+    {
+      "name": "Captures",
+      "description": "Endpoints de captura de Pokémons"
+    },
+    {
+      "name": "Pokedex",
+      "description": "Endpoints de consulta direta à PokéAPI oficial"
     }
   ],
   "paths": {
@@ -22,8 +34,26 @@
         "tags": [
           "Pokemons"
         ],
-        "summary": "Lista todos os Pokémons",
-        "description": "Endpoint para listar os Pokémons cadastrados.",
+        "summary": "Lista todos os Pokémons do catálogo",
+        "description": "Endpoint para listar os Pokémons cadastrados com suporte a filtros por tipo e nome.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtrar por tipo (ex: ELECTRIC)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "description": "Filtrar por parte do nome",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Lista de Pokémons retornada com sucesso.",
@@ -44,8 +74,8 @@
         "tags": [
           "Pokemons"
         ],
-        "summary": "Cria um novo Pokémon",
-        "description": "Endpoint para cadastrar um novo Pokémon.",
+        "summary": "Cria um novo Pokémon no catálogo",
+        "description": "Cadastra manualmente um Pokémon com tipos (enums) e atributos base.",
         "responses": {
           "201": {
             "description": "Pokémon criado com sucesso.",
@@ -95,7 +125,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID do Pokémon a ser consultado"
+            "description": "ID do Pokémon"
           }
         ],
         "responses": {
@@ -126,7 +156,7 @@
           "Pokemons"
         ],
         "summary": "Atualiza um Pokémon pelo ID",
-        "description": "Endpoint para atualizar os dados de um Pokémon cadastrado.",
+        "description": "Atualiza dados de um Pokémon já existente no catálogo.",
         "parameters": [
           {
             "name": "id",
@@ -134,8 +164,7 @@
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "ID do Pokémon a ser atualizado"
+            }
           }
         ],
         "responses": {
@@ -176,7 +205,7 @@
           "Pokemons"
         ],
         "summary": "Remove um Pokémon pelo ID",
-        "description": "Endpoint para remover um Pokémon cadastrado.",
+        "description": "Remove um Pokémon do catálogo.",
         "parameters": [
           {
             "name": "id",
@@ -184,8 +213,7 @@
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "ID do Pokémon a ser removido"
+            }
           }
         ],
         "responses": {
@@ -194,6 +222,203 @@
           },
           "404": {
             "description": "Pokémon não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trainers": {
+      "post": {
+        "tags": [
+          "Trainers"
+        ],
+        "summary": "Cadastro de novos Treinadores",
+        "description": "Cadastra um novo Treinador no banco de dados.",
+        "responses": {
+          "201": {
+            "description": "Treinador criado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trainer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email já cadastrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrainerDto"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trainers/{trainerId}/captures": {
+      "post": {
+        "tags": [
+          "Captures"
+        ],
+        "summary": "Captura de Pokémon para o time do Treinador",
+        "description": "Consulta a PokéAPI oficial, valida a regra de no máximo 6 Pokémons no time e salva a captura no banco de dados.",
+        "parameters": [
+          {
+            "name": "trainerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID do Treinador"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Pokémon capturado com sucesso!",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Limite de 6 Pokémons excedido ou dados inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Treinador ou Pokémon não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapturePokemonDto"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trainers/{trainerId}/team": {
+      "get": {
+        "tags": [
+          "Trainers"
+        ],
+        "summary": "Lista o time atual do treinador",
+        "description": "Retorna os Pokémons capturados pelo treinador (até 6 no time ativo).",
+        "parameters": [
+          {
+            "name": "trainerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID do Treinador"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time do treinador retornado com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainerTeamResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Treinador não encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pokedex/search": {
+      "get": {
+        "tags": [
+          "Pokedex"
+        ],
+        "summary": "Consulta direto na PokéAPI externa",
+        "description": "Busca um Pokémon na PokéAPI oficial pelo nome e retorna o DTO formatado com atributos e tipos.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "description": "Nome do Pokémon (ex: pikachu, charizard)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados da PokéAPI retornados com sucesso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PokedexSearchResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pokémon não encontrado na PokéAPI.",
             "content": {
               "application/json": {
                 "schema": {
@@ -213,25 +438,63 @@
         "required": [
           "id",
           "name",
-          "type",
+          "primaryType",
           "hp"
         ],
         "properties": {
           "id": {
             "type": "string",
-            "example": "1"
+            "example": "25"
           },
           "name": {
             "type": "string",
             "example": "Pikachu"
           },
-          "type": {
+          "primaryType": {
             "type": "string",
-            "example": "Electric"
+            "example": "ELECTRIC"
+          },
+          "secondaryType": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "ELECTRIC"
+            ]
           },
           "hp": {
             "type": "number",
             "example": 35
+          },
+          "attack": {
+            "type": "number",
+            "example": 55
+          },
+          "defense": {
+            "type": "number",
+            "example": 40
+          },
+          "speed": {
+            "type": "number",
+            "example": 90
+          },
+          "baseStatTotal": {
+            "type": "number",
+            "example": 220
+          },
+          "height": {
+            "type": "number",
+            "example": 4
+          },
+          "weight": {
+            "type": "number",
+            "example": 60
           }
         }
       },
@@ -240,25 +503,45 @@
         "required": [
           "id",
           "name",
-          "type",
           "hp"
         ],
         "properties": {
           "id": {
             "type": "string",
-            "example": "1"
+            "example": "25"
           },
           "name": {
             "type": "string",
             "example": "Pikachu"
           },
+          "primaryType": {
+            "type": "string",
+            "example": "ELECTRIC"
+          },
+          "secondaryType": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
           "type": {
             "type": "string",
-            "example": "Electric"
+            "example": "ELECTRIC"
           },
           "hp": {
             "type": "number",
             "example": 35
+          },
+          "attack": {
+            "type": "number",
+            "example": 55
+          },
+          "defense": {
+            "type": "number",
+            "example": 40
+          },
+          "speed": {
+            "type": "number",
+            "example": 90
           }
         }
       },
@@ -269,18 +552,231 @@
             "type": "string",
             "example": "Raichu"
           },
-          "type": {
+          "primaryType": {
             "type": "string",
-            "example": "Electric"
+            "example": "ELECTRIC"
+          },
+          "secondaryType": {
+            "type": "string",
+            "nullable": true
+          },
+          "hp": {
+            "type": "number",
+            "example": 60
+          },
+          "attack": {
+            "type": "number",
+            "example": 90
+          },
+          "defense": {
+            "type": "number",
+            "example": 55
+          },
+          "speed": {
+            "type": "number",
+            "example": 110
+          }
+        }
+      },
+      "Trainer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "f3b8b1a2-3f1a-4c22-b5e1-9556819a695b"
+          },
+          "name": {
+            "type": "string",
+            "example": "Ash Ketchum"
+          },
+          "email": {
+            "type": "string",
+            "example": "ash@pallet.com"
+          },
+          "region": {
+            "type": "string",
+            "example": "Kanto"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateTrainerDto": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ash Ketchum"
+          },
+          "email": {
+            "type": "string",
+            "example": "ash@pallet.com"
+          },
+          "region": {
+            "type": "string",
+            "example": "Kanto"
+          }
+        }
+      },
+      "CapturePokemonDto": {
+        "type": "object",
+        "required": [
+          "pokemonName"
+        ],
+        "properties": {
+          "pokemonName": {
+            "type": "string",
+            "example": "pikachu"
+          },
+          "nickname": {
+            "type": "string",
+            "example": "Sparky"
+          },
+          "level": {
+            "type": "number",
+            "example": 5
+          },
+          "isShiny": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "CaptureResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "9a8b7c6d-5e4f-3a2b-1c0d-e1f2a3b4c5d6"
+          },
+          "trainerId": {
+            "type": "string",
+            "example": "f3b8b1a2-3f1a-4c22-b5e1-9556819a695b"
+          },
+          "pokemonId": {
+            "type": "string",
+            "example": "25"
+          },
+          "nickname": {
+            "type": "string",
+            "example": "Sparky"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Sparky"
+          },
+          "level": {
+            "type": "number",
+            "example": 5
+          },
+          "isShiny": {
+            "type": "boolean",
+            "example": false
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pokemon": {
+            "$ref": "#/components/schemas/Pokemon"
+          }
+        }
+      },
+      "TrainerTeamResponse": {
+        "type": "object",
+        "properties": {
+          "trainer": {
+            "$ref": "#/components/schemas/Trainer"
+          },
+          "teamCount": {
+            "type": "number",
+            "example": 1
+          },
+          "maxTeamSize": {
+            "type": "number",
+            "example": 6
+          },
+          "team": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaptureResponse"
+            }
+          }
+        }
+      },
+      "PokedexSearchResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "25"
+          },
+          "name": {
+            "type": "string",
+            "example": "pikachu"
+          },
+          "primaryType": {
+            "type": "string",
+            "example": "ELECTRIC"
+          },
+          "secondaryType": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "ELECTRIC"
+            ]
+          },
+          "hp": {
+            "type": "number",
+            "example": 35
+          },
+          "attack": {
+            "type": "number",
+            "example": 55
+          },
+          "defense": {
+            "type": "number",
+            "example": 40
+          },
+          "speed": {
+            "type": "number",
+            "example": 90
+          },
+          "height": {
+            "type": "number",
+            "example": 4
+          },
+          "weight": {
+            "type": "number",
+            "example": 60
           }
         }
       },
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "message": {
+          "error": {
             "type": "string",
-            "example": "Pokémon não encontrado"
+            "example": "Mensagem descritiva do erro"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           }
         }
       }

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GetPokemonByIdUseCase = void 0;
-const NotFindError_1 = require("@domain/errors/NotFindError");
+const NotFoundError_1 = require("@domain/errors/NotFoundError");
 class GetPokemonByIdUseCase {
     pokeRepository;
     constructor(pokeRepository) {
@@ -10,7 +10,7 @@ class GetPokemonByIdUseCase {
     async execute(id) {
         const pokemon = await this.pokeRepository.findById(id);
         if (!pokemon) {
-            throw new NotFindError_1.NotFoundError(id);
+            throw new NotFoundError_1.NotFoundError(id, 'Pokémon');
         }
         return pokemon;
     }

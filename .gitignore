@@ -1,1 +1,9 @@
 node_modules/
+dist/
+.env
+.claude/
+.windsurf/
+.agents/
+skills-lock.json
+/generated/prisma
+EXPLICACAO_ETAPA_2.md

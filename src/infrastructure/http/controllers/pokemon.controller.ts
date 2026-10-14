@@ -1,21 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { CreatePokemonUseCase } from '@application/use-cases/createPokemon';
 import { DeletePokemonUseCase } from '@application/use-cases/deletePokemon';
 import { GetPokemonByIdUseCase } from '@application/use-cases/getPokemonById';
 import { ListPokemonUseCase } from '@application/use-cases/listPokemon';
-import { UpdatePokemonDTO } from '@application/dtos/updatePokemonDTO';
 import { UpdatePokemonUseCase } from '@application/use-cases/updatePokemon';
-import { PokemonProps } from '@domain/entities/pokemon';
-import { NotFoundError } from '@domain/errors/NotFindError';
 
-type PokemonParams = {
-  id: string;
-};
-
-const getErrorMessage = (error: unknown): string =>
-  error instanceof Error ? error.message : 'Erro interno.';
-
-// Nas proximas etapas implementar middlewares de tratamento de erro para evitar esse try-catch chato
 export class PokemonController {
   constructor(
     private createPokemon: CreatePokemonUseCase,
@@ -25,87 +14,72 @@ export class PokemonController {
     private updatePokemon: UpdatePokemonUseCase,
   ) {}
 
-  create = async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const { id, name, type, hp } = req.body;
-
-      if (!id || !name || !type || hp === undefined) {
-        return res.status(400).json({
-          error: 'Dados inválidos. Envie id, name, type e hp.',
-        });
-      }
-
-      const pokeData: PokemonProps = {
-        id,
-        name,
-        type,
-        hp,
-      };
-
-      const created_pokemon = await this.createPokemon.execute(pokeData);
-
-      return res.status(201).json(created_pokemon);
-    } catch (error: unknown) {
-      return res.status(400).json({ error: getErrorMessage(error) });
-    }
-  };
-
-  list = async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const poke_list = await this.listPokemons.execute();
-      return res.status(200).json(poke_list);
-    } catch (error: unknown) {
-      return res.status(400).json({ error: getErrorMessage(error) });
-    }
-  };
-
-  update = async (
-    req: Request<PokemonParams>,
+  create = async (
+    req: Request,
     res: Response,
-  ): Promise<Response> => {
+    next: NextFunction,
+  ): Promise<void> => {
     try {
-      const { name, type } = req.body;
-
-      const updtPoke: UpdatePokemonDTO = {
-        name,
-        type,
-      };
-
-      const pokemon = await this.updatePokemon.execute(req.params.id, updtPoke);
-
-      return res.status(200).json(pokemon);
-    } catch (error: unknown) {
-      return res.status(400).json({ error: getErrorMessage(error) });
+      const createdPokemon = await this.createPokemon.execute(req.body);
+      res.status(201).json(createdPokemon.toJSON());
+    } catch (error) {
+      next(error);
     }
   };
-  // Esse pokeParams eu tive que criar pq por algum motivo o req.params.id estava dando erro sozinho
-  delete = async (
-    req: Request<PokemonParams>,
+
+  list = async (
+    req: Request,
     res: Response,
-  ): Promise<Response> => {
+    next: NextFunction,
+  ): Promise<void> => {
     try {
-      await this.deletePokemon.execute(req.params.id);
-      return res.status(204).send();
-    } catch (err) {
-      if (err instanceof NotFoundError)
-        return res.status(404).json({ message: err.message });
-      throw err;
+      const { type, name } = req.query as { type?: string; name?: string };
+      const pokemons = await this.listPokemons.execute({ type, name });
+      res.status(200).json(pokemons.map((p) => p.toJSON()));
+    } catch (error) {
+      next(error);
     }
   };
 
   getById = async (
-    req: Request<PokemonParams>,
+    req: Request,
     res: Response,
-  ): Promise<Response> => {
+    next: NextFunction,
+  ): Promise<void> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       const pokemon = await this.getPokemonById.execute(id);
-      return res.status(200).json(pokemon);
-    } catch (error: unknown) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ message: error.message });
-      }
-      return res.status(400).json({ error: getErrorMessage(error) });
+      res.status(200).json(pokemon.toJSON());
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  update = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { id } = req.params as { id: string };
+      const pokemon = await this.updatePokemon.execute(id, req.body);
+      res.status(200).json(pokemon.toJSON());
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  delete = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { id } = req.params as { id: string };
+      await this.deletePokemon.execute(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
     }
   };
 }
